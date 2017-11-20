@@ -1,0 +1,59 @@
+<!doctype html>
+<html ng-app="myApp">
+<head>
+    <title>TravelSearch</title>
+
+    <script src="https://code.angularjs.org/1.4.3/angular.min.js"></script>
+    <script src="https://code.angularjs.org/1.4.3/angular-route.min.js"></script>
+    <script src="https://code.angularjs.org/1.4.3/angular-resource.min.js"></script>
+    <!--
+    <script src="static/angular.min.js"></script>
+    <script src="static/angular-route.min.js"></script>
+    <script src="static/angular-resource.min.js"></script>
+    -->
+    <script type="text/javascript" src="app.js"></script>
+
+    <!--
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script>
+      function initMap() {
+        var uluru = {lat: -25.363, lng: 131.044};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: uluru
+        });
+        var marker = new google.maps.Marker({
+          position: uluru,
+          map: map
+        });
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCkslOIGzLUSiGr4lCVvexARpVeHdxaUmg&callback=initMap">
+    </script>
+
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header">
+                    <a href="#/" class="navbar-brand">TravelSearch</a>
+                </div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#/"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+                    <li><a href="#/countries"><span class="glyphicon glyphicon-plane"></span> Countries</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div ng-view></div>
+    </div>
+
+
+</body>
+</html>
