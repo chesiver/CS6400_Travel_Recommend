@@ -27,9 +27,9 @@
             "properties": {
                 "name": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},
                 "country": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},
-                "city": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},,
+                "city": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},
                 "intro": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"}
             }
-        },
+        }
     }
 }
