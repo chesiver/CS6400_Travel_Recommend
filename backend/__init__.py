@@ -1,8 +1,10 @@
-from flask import Flask
+from flask import Flask, g, Response
 from flask_restful import reqparse, Resource, Api
 from flask.ext.cors import CORS
 import requests
 import json
+
+from neo4j.v1 import GraphDatabase, basic_auth
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +19,13 @@ es_base_url = {
     'countries': 'http://localhost:9200/travelsearch/countries',
     'cities': 'http://localhost:9200/travelsearch/cities'
 }
+
+driver = GraphDatabase.driver('bolt://localhost',auth=basic_auth('neo4j', 'wjlydntms38'))
+
+def get_db():
+    if not hasattr(g, 'neo4j_db'):
+        g.neo4j_db = driver.session()
+    return g.neo4j_db
 
 class destinationList(Resource):
 
@@ -152,12 +161,43 @@ class Search(Resource):
             destinations.append(destination)
         return destinations
 
+
+def serialize(site):
+    return {
+        'id': site['id'],
+        'name': site['name'],
+        'country': site['country'],
+        'city': site['city'],
+        'intro': site['intro']
+    }
+
+
+class Recommend(Resource):
+
+    def get(self, destination_id):
+        print("Call for GET /recommend %s" % destination_id)
+        db = get_db()
+        results = db.run('match (site:Sites {id:"%s"}) \
+            - [connects:Connects] -> (other_site: Sites) RETURN site, other_site, connects.score'
+            % destination_id)
+        site = results.peek()['site']
+        nodes = [{'id': site['id'], 'label': site['name']}]
+        edges = []
+        for result in results:
+            nodes.append({'id': result['other_site']['id'], 'label': result['other_site']['name']})
+            edges.append({'from': site['id'], 'to': result['other_site']['id']})
+        return Response(json.dumps({'nodes': nodes, 'edges': edges}), 
+            mimetype="application/json")
+
+
+
 api.add_resource(Destination, api_base_url+'/destination/<destination_id>')
 api.add_resource(destinationList, api_base_url+'/destination')
 api.add_resource(countryList, api_base_url+'/countries')
 api.add_resource(Country, api_base_url+'/countries/<country_id>')
 api.add_resource(cityList, api_base_url+'/cities')
 api.add_resource(Search, api_base_url+'/search')
+api.add_resource(Recommend, api_base_url+'/recommend/<string:destination_id>')
 
 
 
