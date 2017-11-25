@@ -1,0 +1,1 @@
+neo4j-admin import --database=graph.db --multiline-fields=true --nodes:Sites nodes.csv --relationships:Connects relations.csv

@@ -1,0 +1,12 @@
+//*[@id="mw-content-text"]/table/tbody/tr/td/h2[span]
+
+//*[@id="mw-content-text"]/table/tr/td/ul[preceding-sibling::h2[1]/span[1]/text()="See" and following-sibling::h2[1]/span[1]/text()="Do"]/li
+
+//*[@id="mw-content-text"]/table/tr/td/ul[preceding-sibling::h2[1]/span[1]/text()="See" and following-sibling::h2[1]/span[1]/text()="Do"]/li/span[@class="vcard"]
+
+site.xpath('.//span[@class="fn org"]/text()').extract_first()
+
+site.xpath('.//span[@class="description"]/text()').extract_first()
+
+//*[@id="mw-content-text"]/table/tr/td/ul[preceding-sibling::h2[1]/span[1]/text()="Cities" and following-sibling::h2[1]/span[1]/text()="Other destinations"]/li
+

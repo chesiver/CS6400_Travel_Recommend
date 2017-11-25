@@ -12,7 +12,7 @@ help::
 
 .PHONY=frontend
 frontend::
-	(cd 2 && python -m http.server)
+	(cd frontend && python -m http.server)
 
 .PHONY=backend
 backend::
@@ -21,6 +21,6 @@ backend::
 .PHONY=index
 index::
 	curl -XDELETE http://localhost:9200/travelsearch; echo;
-	curl -XPOST http://localhost:9200/travelsearch -d @mapping.json; echo
-	curl -XPOST http://localhost:9200/_bulk --data-binary @travel.data; echo
+	curl -XPUT http://localhost:9200/travelsearch/?pretty -H 'Content-Type: application/json' -d @mapping.json; echo
+	curl -XPUT http://localhost:9200/_bulk -H 'Content-Type: application/json' --data-binary @travel.data; echo
 
