@@ -26,6 +26,11 @@ services
     return $resource('http://localhost:5000/api/v1/search', {q: '@q'}, {
         query: { method: 'GET', isArray: true}
     });
+})
+.factory('Recommend', function($resource) {
+    return $resource('http://localhost:5000/api/v1/recommend/:id', {id: '@id'}, {
+        query: { method: 'GET', isArray: false }
+    });
 });
 
 myApp.config(function($routeProvider) {
@@ -111,10 +116,54 @@ myApp.controller(
 );
 
 myApp.controller(
-    'destinationController', ['$scope', 'Destination', '$routeParams',
-    function ($scope, Destination, $routeParams) {
+    'destinationController', ['$scope', 'Destination', 'Recommend', '$routeParams',
+    function ($scope, Destination, Recommend, $routeParams) {
         $scope.result = Destination.get({id: $routeParams.id});
+
+        var recommend_result = Recommend.query({id: $routeParams.id})
+        $scope.nodes = new vis.DataSet();
+        $scope.edges = new vis.DataSet();
+        $scope.network_data = {
+            nodes: $scope.nodes,
+            edges: $scope.edges
+        };
+        $scope.network_options = {
+            height: '800px',
+            width: '800px',
+            interaction: {
+                zoomView: false
+            }
+        };
+        $scope.onNodeSelect = function(properties) {
+            // var selected = $scope.task_nodes.get(properties.nodes[0]);
+            // console.log(selected);
+        };
+        recommend_result.$promise.then(function(d) {
+            $scope.nodes.add(recommend_result.nodes)
+            $scope.edges.add(recommend_result.edges)
+        })
     }
 ]);
 
+myApp.directive('visNetwork', function() {
+    return {
+        restrict: 'E',
+        require: '^ngModel',
+        scope: {
+            ngModel: '=',
+            onSelect: '&',
+            options: '='
+        },
+        link: function($scope, $element, $attrs, ngModel) {
+            var network = new vis.Network($element[0], $scope.ngModel, $scope.options || {});
+
+            var onSelect = $scope.onSelect() || function(prop) {};
+            network.on('select', function(properties) {
+                onSelect(properties);
+            });
+
+        }
+
+    }
+});
 

@@ -12,7 +12,7 @@ help::
 
 .PHONY=frontend
 frontend::
-	(cd frontend && python -m http.server)
+	(cd frontend && python -m http.server 8000)
 
 .PHONY=backend
 backend::
