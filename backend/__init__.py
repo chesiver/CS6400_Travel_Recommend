@@ -43,7 +43,7 @@ class destinationList(Resource):
         destinations = []
         for hit in data['hits']['hits']:
             destination = hit['_source']
-            destination['id'] = hit['_id']
+            # destination['id'] = hit['_id']
             destinations.append(destination)
         return destinations
 
@@ -64,7 +64,7 @@ class countryList(Resource):
         countries = []
         for hit in data['hits']['hits']:
             country = hit['_source']
-            country['id'] = hit['_id']
+            # country['id'] = hit['_id']
             countries.append(country)
         return countries
 
@@ -84,7 +84,7 @@ class cityList(Resource):
         cities = []
         for hit in data['hits']['hits']:
             city = hit['_source']
-            city['id'] = hit['_id']
+            # city['id'] = hit['_id']
             cities.append(city)
         return cities
 
@@ -106,10 +106,19 @@ class Destination(Resource):
 
     def get(self, destination_id):
         print("Call for: GET /destination/%s" % destination_id)
-        url = es_base_url['destination']+'/'+destination_id
-        resp = requests.get(url)
-        data = resp.json()
-        destination = data['_source']
+        url = es_base_url['destination']+'/_search'
+        query = {
+            "query": {
+                "match": {
+                    "id": destination_id
+                }
+            },
+            "size": 1
+        }
+        resp = requests.post(url, data=json.dumps(query))
+        data = resp.json()['hits']['hits']
+        destination = resp.json()['hits']['hits'][0]['_source']
+        print("destination: %s" % destination)
         return destination
 
     def put(self, beer_id):
@@ -157,7 +166,7 @@ class Search(Resource):
         destinations = []
         for hit in data['hits']['hits']:
             destination = hit['_source']
-            destination['id'] = hit['_id']
+            # destination['id'] = hit['_id']
             destinations.append(destination)
         return destinations
 
