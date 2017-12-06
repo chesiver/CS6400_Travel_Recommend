@@ -43,7 +43,7 @@ class destinationList(Resource):
         destinations = []
         for hit in data['hits']['hits']:
             destination = hit['_source']
-            destination['id'] = hit['_id']
+            # destination['id'] = hit['_id']
             destinations.append(destination)
         return destinations
 
@@ -64,7 +64,7 @@ class countryList(Resource):
         countries = []
         for hit in data['hits']['hits']:
             country = hit['_source']
-            country['id'] = hit['_id']
+            # country['id'] = hit['_id']
             countries.append(country)
         return countries
 
@@ -84,7 +84,7 @@ class cityList(Resource):
         cities = []
         for hit in data['hits']['hits']:
             city = hit['_source']
-            city['id'] = hit['_id']
+            # city['id'] = hit['_id']
             cities.append(city)
         return cities
 
@@ -106,10 +106,19 @@ class Destination(Resource):
 
     def get(self, destination_id):
         print("Call for: GET /destination/%s" % destination_id)
-        url = es_base_url['destination']+'/'+destination_id
-        resp = requests.get(url)
-        data = resp.json()
-        destination = data['_source']
+        url = es_base_url['destination']+'/_search'
+        query = {
+            "query": {
+                "match": {
+                    "id": destination_id
+                }
+            },
+            "size": 1
+        }
+        resp = requests.post(url, data=json.dumps(query))
+        data = resp.json()['hits']['hits']
+        destination = resp.json()['hits']['hits'][0]['_source']
+        print("destination: %s" % destination)
         return destination
 
     def put(self, beer_id):
@@ -157,7 +166,6 @@ class Search(Resource):
         destinations = []
         for hit in data['hits']['hits']:
             destination = hit['_source']
-            destination['id'] = hit['_id']
             destinations.append(destination)
         return destinations
 
@@ -177,15 +185,29 @@ class Recommend(Resource):
     def get(self, destination_id):
         print("Call for GET /recommend %s" % destination_id)
         db = get_db()
-        results = db.run('match (site:Sites {id:"%s"}) \
-            - [connects:Connects] -> (other_site: Sites) RETURN site, other_site, connects.score'
+        results = db.run('match p = shortestPath(((site:Sites {id:"%s"}) - [*1..3] -> \
+            (other_site:Sites))) where site <> other_site and all(x in relationships(p) \
+            where toFloat(x.weight) > 0.3) return site.id as id1, site.name as name1, \
+            other_site, p as path limit 20'
             % destination_id)
-        site = results.peek()['site']
-        nodes = [{'id': site['id'], 'label': site['name']}]
+        if results.peek() == None:
+            return Response(json.dumps({'nodes': [], 'edges': []}), 
+                mimetype="application/json") 
+        first = results.peek()
+        nodes = [{'id': first['id1'], 'label': first['name1']}]
         edges = []
+        edgeset = set()
         for result in results:
+            if result['other_site']['id'] == first['id1']:
+                continue
             nodes.append({'id': result['other_site']['id'], 'label': result['other_site']['name']})
-            edges.append({'from': site['id'], 'to': result['other_site']['id']})
+            path = result['path']
+            for relationship in result['path']:
+                id1 = relationship.start
+                id2 = relationship.end
+                if (id1, id2) in edgeset: continue
+                edgeset.add((id1, id2))
+                edges.append({'from': id1, 'to': id2})
         return Response(json.dumps({'nodes': nodes, 'edges': edges}), 
             mimetype="application/json")
 

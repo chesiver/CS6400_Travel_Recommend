@@ -116,8 +116,8 @@ myApp.controller(
 );
 
 myApp.controller(
-    'destinationController', ['$scope', 'Destination', 'Recommend', '$routeParams',
-    function ($scope, Destination, Recommend, $routeParams) {
+    'destinationController', ['$scope', 'Destination', 'Recommend', '$routeParams', '$window',
+    function ($scope, Destination, Recommend, $routeParams, $window) {
         $scope.result = Destination.get({id: $routeParams.id});
 
         var recommend_result = Recommend.query({id: $routeParams.id})
@@ -135,8 +135,15 @@ myApp.controller(
             }
         };
         $scope.onNodeSelect = function(properties) {
-            // var selected = $scope.task_nodes.get(properties.nodes[0]);
+            // var selected = $scope.nodes.get(properties.nodes[0]);
             // console.log(selected);
+        };
+        $scope.onNodeClick = function(properties) {
+            var selected = $scope.nodes.get(properties.nodes[0]);
+            if (!Array.isArray(selected)) {
+                console.log(selected);
+                $window.location.href = '/#/destination/' + selected['id'];
+            }
         };
         recommend_result.$promise.then(function(d) {
             $scope.nodes.add(recommend_result.nodes)
@@ -152,16 +159,20 @@ myApp.directive('visNetwork', function() {
         scope: {
             ngModel: '=',
             onSelect: '&',
-            options: '='
+            onClick: '&',
+            options: '=',
         },
         link: function($scope, $element, $attrs, ngModel) {
             var network = new vis.Network($element[0], $scope.ngModel, $scope.options || {});
 
             var onSelect = $scope.onSelect() || function(prop) {};
-            network.on('select', function(properties) {
-                onSelect(properties);
+            // network.on('select', function(properties) {
+            //     onSelect(properties);
+            // });
+            var onClick = $scope.onClick() || function(prop) {};
+            network.on('click', function(properties) {
+                onClick(properties);
             });
-
         }
 
     }
