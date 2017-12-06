@@ -6,8 +6,8 @@
             "filter": {
                 "autocomplete_filter": {
                     "type":     "edge_ngram",
-                    "min_gram": 2,
-                    "max_gram": 15
+                    "min_gram": 1,
+                    "max_gram": 20
                 }
             },
             "analyzer": {
@@ -25,10 +25,22 @@
     "mappings": {
         "destination": {
             "properties": {
-                "name": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},
-                "country": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},
-                "city": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"},
-                "intro": {"type": "string", "index_analyzer": "autocomplete", "search_analyzer": "standard"}
+                "name": {
+                    "type": "string",
+                    "analyzer": "autocomplete"
+                },
+                "country": {
+                    "type": "string",
+                    "analyzer": "autocomplete"
+                },
+                "city": {
+                    "type": "string",
+                    "analyzer": "autocomplete"
+                },
+                "intro": {
+                    "type": "string",
+                    "analyzer": "autocomplete"
+                }
             }
         }
     }
