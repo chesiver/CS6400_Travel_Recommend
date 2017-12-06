@@ -180,6 +180,9 @@ class Recommend(Resource):
         results = db.run('match (site:Sites {id:"%s"}) \
             - [connects:Connects] -> (other_site: Sites) RETURN site, other_site, connects.score'
             % destination_id)
+        if results.peek() == None:
+            return Response(json.dumps({'nodes': [], 'edges': []}), 
+                mimetype="application/json") 
         site = results.peek()['site']
         nodes = [{'id': site['id'], 'label': site['name']}]
         edges = []
