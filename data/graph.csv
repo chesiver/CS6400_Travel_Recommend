@@ -1,4 +1,4 @@
-source, destination, weight
+source:START_ID, destination:END_ID, weight
 0,5550,0.276902136377
 0,733,0.209303335731
 0,24,0.185089395053

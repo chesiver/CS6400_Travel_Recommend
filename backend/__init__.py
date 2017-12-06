@@ -166,7 +166,6 @@ class Search(Resource):
         destinations = []
         for hit in data['hits']['hits']:
             destination = hit['_source']
-            # destination['id'] = hit['_id']
             destinations.append(destination)
         return destinations
 
@@ -186,18 +185,29 @@ class Recommend(Resource):
     def get(self, destination_id):
         print("Call for GET /recommend %s" % destination_id)
         db = get_db()
-        results = db.run('match (site:Sites {id:"%s"}) \
-            - [connects:Connects] -> (other_site: Sites) RETURN site, other_site, connects.score'
+        results = db.run('match p = shortestPath(((site:Sites {id:"%s"}) - [*1..3] -> \
+            (other_site:Sites))) where site <> other_site and all(x in relationships(p) \
+            where toFloat(x.weight) > 0.3) return site.id as id1, site.name as name1, \
+            other_site, p as path limit 20'
             % destination_id)
         if results.peek() == None:
             return Response(json.dumps({'nodes': [], 'edges': []}), 
                 mimetype="application/json") 
-        site = results.peek()['site']
-        nodes = [{'id': site['id'], 'label': site['name']}]
+        first = results.peek()
+        nodes = [{'id': first['id1'], 'label': first['name1']}]
         edges = []
+        edgeset = set()
         for result in results:
+            if result['other_site']['id'] == first['id1']:
+                continue
             nodes.append({'id': result['other_site']['id'], 'label': result['other_site']['name']})
-            edges.append({'from': site['id'], 'to': result['other_site']['id']})
+            path = result['path']
+            for relationship in result['path']:
+                id1 = relationship.start
+                id2 = relationship.end
+                if (id1, id2) in edgeset: continue
+                edgeset.add((id1, id2))
+                edges.append({'from': id1, 'to': id2})
         return Response(json.dumps({'nodes': nodes, 'edges': edges}), 
             mimetype="application/json")
 
