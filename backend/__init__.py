@@ -190,14 +190,16 @@ class Recommend(Resource):
         nodes = [{'id': result['id'], 'label': result['name']}]
         edges = []
 
-        results = db.run('match p = shortestPath(((site:Sites {id:"%s"}) - [*1..5] -> \
-        (other_site:Sites))) where site <> other_site and all(x in relationships(p) \
-        where toFloat(x.weight) > 0.3) \
-        return other_site.id as id, other_site.name as name, \
-        extract(r in relationships(p) | [startNode(r).id,endNode(r).id]) as path\
-        order by size(path)\
-        limit 20'
-        % destination_id)
+        results = db.run('match (site:Sites) where site.id="%s" \
+            CALL apoc.path.expandConfig(site,{relationshipFilter:"Connects>", \
+            maxLevel:20,uniqueness:"NODE_GLOBAL"}) YIELD path \
+            with site, LAST(NODES(path)) as other_site, relationships(path) as edges\
+            where site <> other_site and \
+            all(x in edges where toFloat(x.weight) > 0.3) \
+            return other_site.id as id, other_site.name as name, \
+            extract(r in edges | [startNode(r).id,endNode(r).id, r.weight]) as path\
+            limit 20'
+            % destination_id)
         edgeset = set()
         for result in results:
             nodes.append({'id': result['id'], 'label': result['name']})
